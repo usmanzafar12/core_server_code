@@ -1,0 +1,50 @@
+version: '3.3'
+
+services:
+  db:
+    container_name: influxdb
+    image: quay.io/influxdb/influxdb:v2.2.0
+    hostname: influx
+    restart: unless-stopped
+    networks:
+      - gps_app_net
+    ports:
+      - 8086:8086
+    volumes:
+      -  /home/gps/influxdb:/root/.influxdbv2
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+  
+  parser:
+    container_name: teltonika
+    image: teltonika-server:v3
+    hostname: teltonika
+    restart: always
+    networks:
+      - gps_app_net
+    ports:
+      - 8001:8001
+    env_file:
+      - envs.txt
+    volumes:
+      - /home/gps/server_stuff/docker_code:/code
+  
+  graf_influx:
+    container_name: grafana_influx
+    image: grafana/grafana-enterprise
+    hostname: graf_influx
+    restart: always
+    ports:
+      - 4000:3000
+    networks:
+      - gps_app_net
+    volumes:
+      - graf_data_v2:/var/lib/grafana
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+networks:
+  gps_app_net: {}
+
+volumes:
+  graf_data_v2:
